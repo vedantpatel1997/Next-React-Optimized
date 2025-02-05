@@ -1,4 +1,7 @@
-name: Build and deploy Next.js app to Azure Web App - nextjs-devops
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - nextjs-devops
 
 on:
   push:
@@ -10,63 +13,56 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Required for actions/checkout
+      contents: read #This is required for actions/checkout
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
-          cache: 'yarn'
+          node-version: '20.x'
 
-      - name: Install dependencies and build
+      - name: npm install, build, and test
         run: |
-          yarn install --frozen-lockfile
-          yarn build
+          npm install
+          npm run build --if-present
+          npm run test --if-present
 
-      - name: Run tests (if available)
-        run: yarn test || echo "No tests found, skipping..."
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
 
-      - name: Prepare artifact for deployment
-        run: |
-          mkdir -p release
-          cp -r .next public package.json yarn.lock release/
-          cd release && zip -r ../release.zip . && cd ..
-
-      - name: Upload artifact for deployment
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: nextjs-app
+          name: node-app
           path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: 'production'
+      name: '2502020010000309'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write
-      contents: read
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: nextjs-app
+          name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip -d .
-
+        run: unzip release.zip
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AFDA44B4D45A4B59B9C4F2C8487A01C0 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4F9E4AEA4D524889A8C07615AF0E90A6 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7577875E53BC4B0784A214A85575AD8E }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E2CE3D0BC7BE402195E0B383C744DEEA }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B4C76C91D01445299A95ECB131EC6CA0 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_99B6F57B775740AF9E773598FE5CC87B }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
@@ -75,3 +71,4 @@ jobs:
           app-name: 'nextjs-devops'
           slot-name: '2502020010000309'
           package: .
+          
