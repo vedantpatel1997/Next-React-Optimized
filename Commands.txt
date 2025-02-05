@@ -1,0 +1,2 @@
+## Command to create a sample project
+yarn create next-app my-app --typescript
