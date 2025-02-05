@@ -44,10 +44,7 @@ jobs:
     environment:
       name: '2502020010000309'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
+    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -57,13 +54,6 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
       
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E2CE3D0BC7BE402195E0B383C744DEEA }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B4C76C91D01445299A95ECB131EC6CA0 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_99B6F57B775740AF9E773598FE5CC87B }}
-
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -71,4 +61,4 @@ jobs:
           app-name: 'nextjs-devops'
           slot-name: '2502020010000309'
           package: .
-          
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1E92EB7D781448F98A1BDB248BA4278A }}
