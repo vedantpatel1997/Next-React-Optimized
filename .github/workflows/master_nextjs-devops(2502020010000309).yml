@@ -64,13 +64,14 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AFDA44B4D45A4B59B9C4F2C8487A01C0 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4F9E4AEA4D524889A8C07615AF0E90A6 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_7577875E53BC4B0784A214A85575AD8E }}
 
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'nextjs-devops'
+          slot-name: '2502020010000309'
           package: .
