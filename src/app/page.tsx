@@ -23,7 +23,7 @@ export default function Home() {
               alt="Vercel logomark"
               width={20}
               height={20}
-            />VEDANT PATEL 1.1
+            />VEDANT PATEL 1.2
           </a>
         <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2">
