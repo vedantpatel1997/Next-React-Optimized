@@ -54,6 +54,6 @@ jobs:
         with:
           app-name: 'nextjs-devops'
           slot-name: '2502020010000309'
-          
+          clean: true
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CB9D1224826541098D97572334655B57 }}
