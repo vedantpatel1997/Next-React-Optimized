@@ -1,67 +1,62 @@
-# # Use an official Node.js runtime as a parent image
-# FROM node:20
 
-# # Set the working directory in the container
-# WORKDIR /app
-
-# # Copy package.json and install dependencies
-# COPY package.json yarn.lock ./
-# RUN yarn install
-
-# # Copy the rest of the app
-# COPY . .
-
-# # Build the Next.js app
-# RUN yarn build
-
-# # Expose port 3000
-# EXPOSE 8080
-
-# # Run the app
-# CMD ["yarn", "start"]
-
-
-
-
-
-# Why is this optimized?
-# Uses Alpine → Base image is node:20-alpine, which is much smaller than node:20.
-# Multi-stage build → Avoids unnecessary files (e.g., devDependencies, cache).
-# Only copies required files → Reduces the final image size significantly.
-# Runs with the correct port (8080) → Ensures your container works as expected.
-
-# Use a smaller base image
+# Stage 1: Build the application
 FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files first (better caching)
+# Enable layer caching for dependencies
 COPY package.json yarn.lock ./
 
-# Install dependencies
+# Install all dependencies (including devDependencies) for build
 RUN yarn install --frozen-lockfile
 
-# Copy rest of the application
+# Copy application files
 COPY . .
 
-# Build the Next.js app
+# Build the project
 RUN yarn build
 
-# Use a lightweight runtime image
-# FROM node:20-alpine
+# Stage 2: Production image
+FROM node:20-alpine
 
-# # Set working directory
-# WORKDIR /app
+# Set working directory
+WORKDIR /app
 
-# # Copy only the necessary files from builder
-# COPY --from=builder /app/package.json /app/yarn.lock ./
-# COPY --from=builder /app/.next .next
-# COPY --from=builder /app/public public
-# COPY --from=builder /app/node_modules node_modules
+# Install production dependencies only
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production
 
-# Expose the new port
-EXPOSE 8080
+# Copy built assets from builder
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 
-# Run the app on port 8080
-CMD ["yarn", "start", "-p", "8080"]
+# Configure SSH (Alpine-specific)
+RUN apk add --no-cache openssh && \
+    echo "root:Docker!" | chpasswd && \
+    ssh-keygen -A && \
+    mkdir -p /var/run/sshd
+
+COPY sshd_config /etc/ssh/
+
+# Cleanup to reduce image size
+RUN rm -rf /var/cache/apk/* /tmp/*
+
+# Expose ports
+EXPOSE 8080 2222
+
+# Run SSH in background and Next.js as main process
+CMD ["sh", "-c", "/usr/sbin/sshd -D & exec yarn start -p 8080"]
+
+
+# # Build the Docker image
+# docker build -t libraryacr.azurecr.io/next-react:nextreact8080extstorage .
+
+# # Log in to Azure Container Registry
+# az acr login --name libraryacr
+
+# # Push the Docker image to Azure Container Registry
+# docker push libraryacr.azurecr.io/next-react:nextreact8080extstorage
+
+# # Run the Docker container
+# docker run -p 8080:8080 libraryacr.azurecr.io/next-react:nextreact8080extstorage
